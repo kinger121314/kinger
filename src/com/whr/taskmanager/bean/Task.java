@@ -105,6 +105,10 @@ public class Task {
 		 * 最高
 		 */
 		HIGHEST,
+		/**
+		 * 非法
+		 */
+		INVAILD,
 	}
 
 	/**
@@ -143,6 +147,10 @@ public class Task {
 		 * 震动
 		 */
 		SHAKE,
+		/**
+		 * 无提醒
+		 */
+		NONE,
 	}
 
 	/**
@@ -192,7 +200,7 @@ public class Task {
 	/**
 	 * 提醒方式
 	 */
-	private MentionAction mMentionAction;
+	private ArrayList<MentionAction> mMentionAction;
 
 	/**
 	 * 默认构造函数
@@ -211,7 +219,7 @@ public class Task {
 	 *            内容
 	 * @param expireTime
 	 *            到期时间
-	 * @param reaptAction
+	 * @param reaptActions
 	 *            重复行为
 	 * @param importLevel
 	 *            重要等级
@@ -219,16 +227,16 @@ public class Task {
 	 *            提醒方式
 	 */
 	public Task(long createTime, String title, String content, long expireTime,
-			ArrayList<RepeatAction> reaptAction, ImportLevel importLevel,
-			MentionAction mentionAction) {
+			ArrayList<RepeatAction> reaptActions, ImportLevel importLevel,
+			ArrayList<MentionAction> mentionActions) {
 		// 初始化
 		this.mCreateTime = createTime;
 		this.mTitle = title;
 		this.mContent = content;
 		this.mExpireTime = expireTime;
-		this.mReaptAction = reaptAction;
+		this.mReaptAction = reaptActions;
 		this.mImportLevel = importLevel;
-		this.mMentionAction = mentionAction;
+		this.mMentionAction = mentionActions;
 		// 默认初始化
 		this.mModifyTime = this.mCreateTime;
 		this.mModifyAction = ModifyAction.CREATE;
@@ -250,7 +258,7 @@ public class Task {
 	 *            目的地X
 	 * @param destY
 	 *            目的地Y
-	 * @param reaptAction
+	 * @param reaptActions
 	 *            重复行为
 	 * @param importLevel
 	 *            重要等级
@@ -258,8 +266,8 @@ public class Task {
 	 *            提醒方式
 	 */
 	public Task(long createTime, String title, String content, long expireTime,
-			double destX, double destY, ArrayList<RepeatAction> reaptAction,
-			ImportLevel importLevel, MentionAction mentionAction) {
+			double destX, double destY, ArrayList<RepeatAction> reaptActions,
+			ImportLevel importLevel, ArrayList<MentionAction> mentionActions) {
 		// 初始化
 		this.mCreateTime = createTime;
 		this.mTitle = title;
@@ -267,12 +275,129 @@ public class Task {
 		this.mExpireTime = expireTime;
 		this.mDestX = destX;
 		this.mDestY = destY;
-		this.mReaptAction = reaptAction;
+		this.mReaptAction = reaptActions;
 		this.mImportLevel = importLevel;
-		this.mMentionAction = mentionAction;
+		this.mMentionAction = mentionActions;
 		// 默认初始化
 		this.mModifyTime = this.mCreateTime;
 		this.mModifyAction = ModifyAction.CREATE;
 		this.mStatus = Status.ACTIVE;
 	}
+
+	public Task(long createTime, long modifyTime, ModifyAction modifyAction,
+			String title, String content, long expireTime, double destX,
+			double destY, ArrayList<RepeatAction> reaptActions,
+			ImportLevel importLevel, Status status,
+			ArrayList<MentionAction> mentionActions) {
+		super();
+		this.mCreateTime = createTime;
+		this.mModifyTime = modifyTime;
+		this.mModifyAction = modifyAction;
+		this.mTitle = title;
+		this.mContent = content;
+		this.mExpireTime = expireTime;
+		this.mDestX = destX;
+		this.mDestY = destY;
+		this.mReaptAction = reaptActions;
+		this.mImportLevel = importLevel;
+		this.mStatus = status;
+		this.mMentionAction = mentionActions;
+	}
+
+	public long getCreateTime() {
+		return mCreateTime;
+	}
+
+	public void setCreateTime(long createTime) {
+		this.mCreateTime = createTime;
+	}
+
+	public long getModifyTime() {
+		return mModifyTime;
+	}
+
+	public void setModifyTime(long modifyTime) {
+		this.mModifyTime = modifyTime;
+	}
+
+	public ModifyAction getModifyAction() {
+		return mModifyAction;
+	}
+
+	public void setModifyAction(ModifyAction modifyAction) {
+		this.mModifyAction = modifyAction;
+	}
+
+	public String getTitle() {
+		return mTitle;
+	}
+
+	public void setTitle(String title) {
+		this.mTitle = title;
+	}
+
+	public String getContent() {
+		return mContent;
+	}
+
+	public void setContent(String content) {
+		this.mContent = content;
+	}
+
+	public long getExpireTime() {
+		return mExpireTime;
+	}
+
+	public void setExpireTime(long expireTime) {
+		this.mExpireTime = expireTime;
+	}
+
+	public double getDestX() {
+		return mDestX;
+	}
+
+	public void setDestX(double destX) {
+		this.mDestX = destX;
+	}
+
+	public double getDestY() {
+		return mDestY;
+	}
+
+	public void setDestY(double destY) {
+		this.mDestY = destY;
+	}
+
+	public ArrayList<RepeatAction> getReaptAction() {
+		return mReaptAction;
+	}
+
+	public void setReaptAction(ArrayList<RepeatAction> reaptAction) {
+		this.mReaptAction = reaptAction;
+	}
+
+	public ImportLevel getImportLevel() {
+		return mImportLevel;
+	}
+
+	public void setImportLevel(ImportLevel importLevel) {
+		this.mImportLevel = importLevel;
+	}
+
+	public Status getStatus() {
+		return mStatus;
+	}
+
+	public void setStatus(Status status) {
+		this.mStatus = status;
+	}
+
+	public ArrayList<MentionAction> getMentionAction() {
+		return mMentionAction;
+	}
+
+	public void setMentionAction(ArrayList<MentionAction> mentionAction) {
+		this.mMentionAction = mentionAction;
+	}
+
 }
