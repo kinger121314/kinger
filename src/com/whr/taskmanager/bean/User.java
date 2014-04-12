@@ -9,6 +9,8 @@ public class User {
 	 * 用户密码
 	 */
 	private String mPassword;
+
+	private String mAppid = "";
 	/**
 	 * 频道号
 	 */
@@ -17,6 +19,11 @@ public class User {
 	 * 用户ID
 	 */
 	private String mUserID;
+
+	private double mLatitude;
+	private double mLongitude;
+
+	private String mAddrStr;
 	/**
 	 * 最后一次更新时间
 	 */
@@ -61,4 +68,37 @@ public class User {
 	public void setLastRequestTime(long lastRequestTime) {
 		this.mLastRequestTime = lastRequestTime;
 	}
+
+	public String getAppid() {
+		return mAppid;
+	}
+
+	public void setAppid(String appid) {
+		this.mAppid = appid;
+	}
+
+	public double getLatitude() {
+		return mLatitude;
+	}
+
+	public void setLatitude(double latitude) {
+		this.mLatitude = latitude;
+	}
+
+	public double getLongitude() {
+		return mLongitude;
+	}
+
+	public void setLongitude(double longitude) {
+		this.mLongitude = longitude;
+	}
+
+	public String getAddrStr() {
+		return mAddrStr;
+	}
+
+	public void setAddrStr(String addrStr) {
+		this.mAddrStr = addrStr;
+	}
+
 }

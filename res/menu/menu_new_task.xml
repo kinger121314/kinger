@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/action_cancel"
+        android:orderInCategory="1"
+        android:showAsAction="always"
+        android:title="取消"/>
+    <item
+        android:id="@+id/action_save"
+        android:orderInCategory="2"
+        android:showAsAction="always"
+        android:title="保存"/>
+
+</menu>

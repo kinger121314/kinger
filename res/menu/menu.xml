@@ -1,0 +1,31 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/action_voice"
+        android:icon="@drawable/voice"
+        android:showAsAction="ifRoom|withText"
+        android:title="语音"/>
+    <item
+        android:id="@+id/action_add_new"
+        android:icon="@drawable/add"
+        android:showAsAction="ifRoom|withText"
+        android:title="添加"/>
+    <item
+        android:icon="@drawable/setting"
+        android:showAsAction="always"
+        android:title="更多">
+        <menu>
+            <group>
+                <item
+                    android:id="@+id/action_user"
+                    android:icon="@drawable/ic_launcher"
+                    android:title="用户名"/>
+                <item
+                    android:id="@+id/action_settings"
+                    android:icon="@drawable/setting"
+                    android:title="设置"/>
+            </group>
+        </menu>
+    </item>
+
+</menu>

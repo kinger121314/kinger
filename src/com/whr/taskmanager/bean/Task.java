@@ -148,6 +148,10 @@ public class Task {
 		 */
 		SHAKE,
 		/**
+		 * 声音加震动
+		 */
+		ALL,
+		/**
 		 * 无提醒
 		 */
 		NONE,
@@ -180,11 +184,11 @@ public class Task {
 	/**
 	 * 目的地坐标X
 	 */
-	private double mDestX;
+	private double mDestX = -1.0;
 	/**
 	 * 目的地坐标Y
 	 */
-	private double mDestY;
+	private double mDestY = -1.0;
 	/**
 	 * 重复行为
 	 */
@@ -192,7 +196,7 @@ public class Task {
 	/**
 	 * 重要等级
 	 */
-	private ImportLevel mImportLevel;
+	private ImportLevel mImportLevel = ImportLevel.LOWEST;
 	/**
 	 * 任务状态
 	 */
@@ -200,7 +204,7 @@ public class Task {
 	/**
 	 * 提醒方式
 	 */
-	private ArrayList<MentionAction> mMentionAction;
+	private MentionAction mMentionAction;
 
 	/**
 	 * 默认构造函数
@@ -228,7 +232,7 @@ public class Task {
 	 */
 	public Task(long createTime, String title, String content, long expireTime,
 			ArrayList<RepeatAction> reaptActions, ImportLevel importLevel,
-			ArrayList<MentionAction> mentionActions) {
+			MentionAction mentionAction) {
 		// 初始化
 		this.mCreateTime = createTime;
 		this.mTitle = title;
@@ -236,7 +240,7 @@ public class Task {
 		this.mExpireTime = expireTime;
 		this.mReaptAction = reaptActions;
 		this.mImportLevel = importLevel;
-		this.mMentionAction = mentionActions;
+		this.mMentionAction = mentionAction;
 		// 默认初始化
 		this.mModifyTime = this.mCreateTime;
 		this.mModifyAction = ModifyAction.CREATE;
@@ -267,7 +271,7 @@ public class Task {
 	 */
 	public Task(long createTime, String title, String content, long expireTime,
 			double destX, double destY, ArrayList<RepeatAction> reaptActions,
-			ImportLevel importLevel, ArrayList<MentionAction> mentionActions) {
+			ImportLevel importLevel, MentionAction mentionAction) {
 		// 初始化
 		this.mCreateTime = createTime;
 		this.mTitle = title;
@@ -277,7 +281,7 @@ public class Task {
 		this.mDestY = destY;
 		this.mReaptAction = reaptActions;
 		this.mImportLevel = importLevel;
-		this.mMentionAction = mentionActions;
+		this.mMentionAction = mentionAction;
 		// 默认初始化
 		this.mModifyTime = this.mCreateTime;
 		this.mModifyAction = ModifyAction.CREATE;
@@ -287,8 +291,7 @@ public class Task {
 	public Task(long createTime, long modifyTime, ModifyAction modifyAction,
 			String title, String content, long expireTime, double destX,
 			double destY, ArrayList<RepeatAction> reaptActions,
-			ImportLevel importLevel, Status status,
-			ArrayList<MentionAction> mentionActions) {
+			ImportLevel importLevel, Status status, MentionAction mentionAction) {
 		super();
 		this.mCreateTime = createTime;
 		this.mModifyTime = modifyTime;
@@ -301,7 +304,7 @@ public class Task {
 		this.mReaptAction = reaptActions;
 		this.mImportLevel = importLevel;
 		this.mStatus = status;
-		this.mMentionAction = mentionActions;
+		this.mMentionAction = mentionAction;
 	}
 
 	public long getCreateTime() {
@@ -392,11 +395,11 @@ public class Task {
 		this.mStatus = status;
 	}
 
-	public ArrayList<MentionAction> getMentionAction() {
+	public MentionAction getMentionAction() {
 		return mMentionAction;
 	}
 
-	public void setMentionAction(ArrayList<MentionAction> mentionAction) {
+	public void setMentionAction(MentionAction mentionAction) {
 		this.mMentionAction = mentionAction;
 	}
 

@@ -28,6 +28,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.baidu.android.pushservice.PushConstants;
+import com.baidu.android.pushservice.PushManager;
 import com.iflytek.speech.ErrorCode;
 import com.iflytek.speech.ISpeechModule;
 import com.iflytek.speech.InitListener;
@@ -40,6 +42,7 @@ import com.iflytek.speech.UtilityConfig;
 import com.whr.fragment.BaseFragment;
 import com.whr.taskmanager.bean.TabInfo;
 import com.whr.taskmanager.util.ApkInstaller;
+import com.whr.taskmanager.util.PushUtils;
 import com.whr.taskmanager.util.XmlParser;
 
 public class MainActivity extends IndicatorFragmentActivity {
@@ -126,6 +129,7 @@ public class MainActivity extends IndicatorFragmentActivity {
 			}
 		} catch (Exception ex) {
 		}
+
 		// 设置你申请的应用appid
 		SpeechUtility.getUtility(MainActivity.this).setAppid(
 				getString(R.string.app_id));
