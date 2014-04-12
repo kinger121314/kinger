@@ -52,6 +52,7 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 	private static final String TaskImportLevel = "importLevel";
 	private static final String TaskStatus = "status";
 	private static final String TaskMentionAction = "mentionAction";
+	private static final String TaskUserName = "userName";
 
 	private static final String CreateTask = "create table %s0 (%s1 Long,%s2 Long, %s3 text,%s4 text,%s5 text,%s6 Long,%s7 Double,%s8 Double,%s9 text, "
 			.replace("%s0", TaskTable).replace("%s1", TaskCreateTime)
@@ -59,9 +60,10 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 			.replace("%s4", TaskTitle).replace("%s5", TaskContent)
 			.replace("%s6", TaskExpireTime).replace("%s7", TaskDestX)
 			.replace("%s8", TaskDestY).replace("%s9", TaskReaptAction)
-			+ " %s0 integer,%s1 text,%s2 text)".replace("%s0", TaskImportLevel)
-					.replace("%s1", TaskStatus)
-					.replace("%s2", TaskMentionAction);
+			+ " %s0 integer,%s1 text,%s2 text,%s3 text)"
+					.replace("%s0", TaskImportLevel).replace("%s1", TaskStatus)
+					.replace("%s2", TaskMentionAction)
+					.replace("$s3", TaskUserName);
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
@@ -76,14 +78,15 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 	}
 
-	public static synchronized ArrayList<Task> getAllTasks() {
+	public synchronized ArrayList<Task> getAllTasks(String userName) {
 		ArrayList<Task> tasks = new ArrayList<Task>();
 		db.beginTransaction(); // 开始事务
 		try {
-			Cursor res = db
-					.query(TaskTable, null, null, null, null, null, null);
+			String[] selectionArgs = new String[] { userName };
+			Cursor res = db.query(TaskTable, null,
+					"%s0 = ?".replace("%s0", TaskUserName), selectionArgs,
+					null, null, null);
 			while (res.moveToNext()) {
-
 				long createTime = res.getLong(res
 						.getColumnIndex(TaskCreateTime));
 				long modifyTime = res.getLong(res

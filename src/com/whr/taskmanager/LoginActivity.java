@@ -1,15 +1,17 @@
 package com.whr.taskmanager;
 
 import java.lang.reflect.Field;
-import java.security.MessageDigest;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -25,11 +27,16 @@ import android.widget.Toast;
 import com.whr.taskmanager.service.TaskManagerService;
 import com.whr.taskmanager.service.TaskManagerService.MyIBinder;
 import com.whr.taskmanager.service.TaskManagerServiceCallBack;
+import com.whr.taskmanager.util.AESEncryptor;
 
 public class LoginActivity extends Activity implements OnClickListener {
+
+	private static final int ERROR_MSG = 0x999;
+	private static final int LOGIN_SUCCESS = 0x001;
+	private static final int CANCEL_DIALOG = 0x002;
+
 	MyIBinder mBinder;
 	TaskManagerServiceCallBack mCallBack;
-
 	SharedPreferences mSharedPreferences;
 	EditText mUserName;
 	EditText mPassword;
@@ -39,11 +46,54 @@ public class LoginActivity extends Activity implements OnClickListener {
 
 	boolean mIsCheck;
 
+	private Dialog mLoadDialog;
+
 	private Handler mHandler = new Handler(new Handler.Callback() {
 
 		@Override
 		public boolean handleMessage(Message msg) {
+			switch (msg.what) {
+			case ERROR_MSG:
+				Toast.makeText(LoginActivity.this, (String) msg.obj,
+						Toast.LENGTH_SHORT).show();
+				mHandler.sendEmptyMessage(CANCEL_DIALOG);
+				break;
 
+			case LOGIN_SUCCESS:
+				mHandler.sendEmptyMessage(CANCEL_DIALOG);
+				// 保存账户密码
+				if (mRemember.isChecked()) {
+					String userName = mUserName.getText().toString();
+					String password = mPassword.getText().toString();
+					try {
+						userName = AESEncryptor.encrypt("mUserName", userName);
+						password = AESEncryptor.encrypt("mPassword", userName);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					Editor editor = mSharedPreferences.edit();
+					editor.putString("username", userName);
+					editor.putString("password", password);
+					editor.putBoolean("isRememberPassword", true);
+					editor.commit();
+				}
+
+				Intent intent = new Intent(LoginActivity.this,
+						MainActivity.class);
+				startActivity(intent);
+				LoginActivity.this.finish();
+
+				break;
+
+			case CANCEL_DIALOG:
+				if (mLoadDialog != null) {
+					mLoadDialog.dismiss();
+				}
+				break;
+
+			default:
+				break;
+			}
 			return false;
 		}
 	});
@@ -85,6 +135,20 @@ public class LoginActivity extends Activity implements OnClickListener {
 		bindService(service, mConn, Context.BIND_AUTO_CREATE);
 
 		mCallBack = new TaskManagerServiceCallBack() {
+
+			@Override
+			public void errorHasHappen(String errorMsg) {
+				mHandler.obtainMessage(ERROR_MSG, errorMsg).sendToTarget();
+			}
+
+			@Override
+			public void loginSuccess() {
+				mHandler.sendEmptyMessage(LOGIN_SUCCESS);
+			}
+
+			@Override
+			public void registerSuccess() {
+			}
 		};
 		initView();
 		mSharedPreferences = getSharedPreferences("TaskManager", 0);
@@ -93,10 +157,14 @@ public class LoginActivity extends Activity implements OnClickListener {
 		if (mIsCheck) {
 			String username = mSharedPreferences.getString("username", "");
 			String password = mSharedPreferences.getString("password", "");
-			username = encryptmd5(username);
-			password = encryptmd5(password);
-			mUserName.setText(""+username);
-			mPassword.setText(""+password);
+			try {
+				username = AESEncryptor.decrypt("mUserName", username);
+				password = AESEncryptor.decrypt("mPassword", password);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			mUserName.setText("" + username);
+			mPassword.setText("" + password);
 			mRemember.setChecked(true);
 		}
 	}
@@ -135,6 +203,12 @@ public class LoginActivity extends Activity implements OnClickListener {
 						Toast.LENGTH_SHORT).show();
 				break;
 			}
+			// 启动循环圈等待
+			mLoadDialog = new AlertDialog.Builder(LoginActivity.this).create();
+			mLoadDialog.show();
+			// 注意此处要放在show之后 否则会报异常
+			mLoadDialog.setContentView(R.layout.loading_process_dialog_anim);
+			// 通知登陆
 			mBinder.login(userName, password);
 			break;
 
@@ -143,55 +217,11 @@ public class LoginActivity extends Activity implements OnClickListener {
 			Intent intent = new Intent(LoginActivity.this,
 					RegisterActivity.class);
 			startActivity(intent);
+
 			break;
 
 		default:
 			break;
 		}
 	}
-
-	// MD5加密，32位
-	public static String MD5(String str) {
-		// 错误检测
-		if (str == null || "".equals(str)) {
-			return "";
-		}
-		MessageDigest md5 = null;
-		try {
-			md5 = MessageDigest.getInstance("MD5");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "";
-		}
-		char[] charArray = str.toCharArray();
-		byte[] byteArray = new byte[charArray.length];
-		for (int i = 0; i < charArray.length; i++) {
-			byteArray[i] = (byte) charArray[i];
-		}
-		byte[] md5Bytes = md5.digest(byteArray);
-		StringBuffer hexValue = new StringBuffer();
-		for (int i = 0; i < md5Bytes.length; i++) {
-			int val = ((int) md5Bytes[i]) & 0xff;
-			if (val < 16) {
-				hexValue.append("0");
-			}
-			hexValue.append(Integer.toHexString(val));
-		}
-		return hexValue.toString();
-	}
-
-	// 可逆的加密算法
-	public static String encryptmd5(String str) {
-		// 错误检测
-		if (str == null || "".equals(str)) {
-			return "";
-		}
-		char[] a = str.toCharArray();
-		for (int i = 0; i < a.length; i++) {
-			a[i] = (char) (a[i] ^ 'l');
-		}
-		String s = new String(a);
-		return s;
-	}
-
 }

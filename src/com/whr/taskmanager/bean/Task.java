@@ -147,14 +147,6 @@ public class Task {
 		 * 震动
 		 */
 		SHAKE,
-		/**
-		 * 声音加震动
-		 */
-		ALL,
-		/**
-		 * 无提醒
-		 */
-		NONE,
 	}
 
 	/**
@@ -182,13 +174,14 @@ public class Task {
 	 */
 	private long mExpireTime;
 	/**
-	 * 目的地坐标X
+	 * 纬度
 	 */
-	private double mDestX = -1.0;
+	private double mLatitude = -1.0;
 	/**
-	 * 目的地坐标Y
+	 * 经度
 	 */
-	private double mDestY = -1.0;
+	private double mLongitude = -1.0;
+
 	/**
 	 * 重复行为
 	 */
@@ -277,8 +270,8 @@ public class Task {
 		this.mTitle = title;
 		this.mContent = content;
 		this.mExpireTime = expireTime;
-		this.mDestX = destX;
-		this.mDestY = destY;
+		this.mLatitude = destX;
+		this.mLongitude = destY;
 		this.mReaptAction = reaptActions;
 		this.mImportLevel = importLevel;
 		this.mMentionAction = mentionAction;
@@ -299,8 +292,8 @@ public class Task {
 		this.mTitle = title;
 		this.mContent = content;
 		this.mExpireTime = expireTime;
-		this.mDestX = destX;
-		this.mDestY = destY;
+		this.mLatitude = destX;
+		this.mLongitude = destY;
 		this.mReaptAction = reaptActions;
 		this.mImportLevel = importLevel;
 		this.mStatus = status;
@@ -355,20 +348,20 @@ public class Task {
 		this.mExpireTime = expireTime;
 	}
 
-	public double getDestX() {
-		return mDestX;
+	public double getLatitude() {
+		return mLatitude;
 	}
 
-	public void setDestX(double destX) {
-		this.mDestX = destX;
+	public void setLatitude(double latitude) {
+		this.mLatitude = latitude;
 	}
 
-	public double getDestY() {
-		return mDestY;
+	public double getLongitude() {
+		return mLongitude;
 	}
 
-	public void setDestY(double destY) {
-		this.mDestY = destY;
+	public void setLongitude(double longitude) {
+		this.mLongitude = longitude;
 	}
 
 	public ArrayList<RepeatAction> getReaptAction() {

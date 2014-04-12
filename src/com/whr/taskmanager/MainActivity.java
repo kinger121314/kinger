@@ -1,4 +1,4 @@
-package com.whr.taskmanager;
+      package com.whr.taskmanager;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -74,6 +74,8 @@ public class MainActivity extends IndicatorFragmentActivity {
 				if (mLoadDialog != null) {
 					mLoadDialog.dismiss();
 				}
+				break;
+				
 			default:
 				break;
 			}
