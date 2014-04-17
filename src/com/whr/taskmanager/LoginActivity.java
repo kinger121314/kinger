@@ -76,8 +76,11 @@ public class LoginActivity extends Activity implements OnClickListener {
 					editor.putString("password", password);
 					editor.putBoolean("isRememberPassword", true);
 					editor.commit();
+				}else{
+					Editor editor = mSharedPreferences.edit();
+					editor.putBoolean("isRememberPassword", false);
+					editor.commit();
 				}
-
 				Intent intent = new Intent(LoginActivity.this,
 						MainActivity.class);
 				startActivity(intent);

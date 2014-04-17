@@ -7,6 +7,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.whr.taskmanager.bean.Task;
+import com.whr.taskmanager.bean.User;
+import com.whr.taskmanager.bean.Task.ImportLevel;
+import com.whr.taskmanager.bean.Task.MentionAction;
+import com.whr.taskmanager.bean.Task.ModifyAction;
+import com.whr.taskmanager.bean.Task.RepeatAction;
+import com.whr.taskmanager.bean.Task.Status;
 
 public class JsonParser {
 	/*
@@ -49,5 +55,76 @@ public class JsonParser {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static  ArrayList<Task> getTasksFromJsonString(String jsonString, User user) {
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		try {
+			JSONObject json = new JSONObject(jsonString);
+			String userName = json.getString("UserName");
+			if (user.getUserName().equals(userName)) {
+				JSONArray jsonArr = json.getJSONArray("Tasks");
+				for (int i = 0; i < jsonArr.length(); i++) {
+					JSONObject tmp = jsonArr.getJSONObject(i);
+					long createTime = tmp.getLong("CreateTime");
+					long modifyTime = tmp.getLong("ModifyTime");
+					ModifyAction modifyAction = ModifyAction.valueOf(tmp
+							.getString("ModifyAction"));
+					String title = tmp.getString("Title");
+					String content = tmp.getString("Content");
+					long expireTime = tmp.getLong("ExpireTime");
+					double destX = -1.0;
+					double destY = -1.0;
+					try {
+						destX = tmp.getDouble("Longitude");
+						destY = tmp.getDouble("Latitude ");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					ArrayList<RepeatAction> reaptActions = new ArrayList<Task.RepeatAction>();
+					String repeatActionString = tmp.getString("Repeat");
+					try {
+						if (!"".equals(repeatActionString)) {
+							String[] repeatActionArrs = repeatActionString
+									.split("\\|");
+							for (String tmpAction : repeatActionArrs) {
+								reaptActions.add(RepeatAction
+										.valueOf(tmpAction));
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
+
+					ImportLevel importLevel = ImportLevel
+							.valueOf("ImportLevel");
+					Status status = Status.valueOf("Status");
+
+					ArrayList<MentionAction> mentionActions = new ArrayList<MentionAction>();
+					String mentionActionString = tmp.getString("MentionAction");
+					try {
+						if (!"".equals(mentionActionString)) {
+							String[] mentionActionArrs = mentionActionString
+									.split("\\|");
+							for (String tmpAction : mentionActionArrs) {
+								mentionActions.add(MentionAction
+										.valueOf(tmpAction));
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
+					Task task = new Task(createTime, modifyTime, modifyAction,
+							title, content, expireTime, destX, destY,
+							reaptActions, importLevel, status, mentionActions);
+					tasks.add(task);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return tasks;
 	}
 }

@@ -54,7 +54,6 @@ public class RegisterActivity extends Activity implements OnClickListener {
 
 			case LOGIN_SUCCESS:
 				mHandler.sendEmptyMessage(CANCEL_DIALOG);
-
 				Intent intent = new Intent(RegisterActivity.this,
 						MainActivity.class);
 				startActivity(intent);

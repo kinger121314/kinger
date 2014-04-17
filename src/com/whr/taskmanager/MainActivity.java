@@ -1,4 +1,4 @@
-      package com.whr.taskmanager;
+package com.whr.taskmanager;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,8 +29,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.baidu.android.pushservice.PushConstants;
-import com.baidu.android.pushservice.PushManager;
 import com.iflytek.speech.ErrorCode;
 import com.iflytek.speech.ISpeechModule;
 import com.iflytek.speech.InitListener;
@@ -41,11 +40,13 @@ import com.iflytek.speech.UnderstanderResult;
 import com.iflytek.speech.UtilityConfig;
 import com.whr.fragment.BaseFragment;
 import com.whr.taskmanager.bean.TabInfo;
+import com.whr.taskmanager.bean.VoiceMsg;
 import com.whr.taskmanager.util.ApkInstaller;
-import com.whr.taskmanager.util.PushUtils;
 import com.whr.taskmanager.util.XmlParser;
 
 public class MainActivity extends IndicatorFragmentActivity {
+
+	private static final String TAG = "TaskManager";
 	private static final String ACTION_INPUT = "com.iflytek.speech.action.voiceinput";
 
 	/** 外部设置的弹出框完成按钮文字 */
@@ -75,7 +76,7 @@ public class MainActivity extends IndicatorFragmentActivity {
 					mLoadDialog.dismiss();
 				}
 				break;
-				
+
 			default:
 				break;
 			}
@@ -102,12 +103,11 @@ public class MainActivity extends IndicatorFragmentActivity {
 				@Override
 				public void run() {
 					if (null != result) {
-						String text = XmlParser.parseNluResult(result
+						VoiceMsg msg = XmlParser.parseNluResult(result
 								.getResultString());
-						Toast.makeText(MainActivity.this, "text:" + text,
-								Toast.LENGTH_LONG).show();
-					} else {
-
+						Log.d(TAG, "msg.voiceMsg:" + msg.voiceMsg
+								+ " msg.date:" + msg.date + " msg.time:"
+								+ msg.time);
 					}
 				}
 			});

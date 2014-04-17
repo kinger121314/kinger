@@ -197,7 +197,7 @@ public class Task {
 	/**
 	 * 提醒方式
 	 */
-	private MentionAction mMentionAction;
+	private ArrayList<MentionAction> mMentionAction;
 
 	/**
 	 * 默认构造函数
@@ -225,7 +225,7 @@ public class Task {
 	 */
 	public Task(long createTime, String title, String content, long expireTime,
 			ArrayList<RepeatAction> reaptActions, ImportLevel importLevel,
-			MentionAction mentionAction) {
+			ArrayList<MentionAction> mentionAction) {
 		// 初始化
 		this.mCreateTime = createTime;
 		this.mTitle = title;
@@ -264,7 +264,7 @@ public class Task {
 	 */
 	public Task(long createTime, String title, String content, long expireTime,
 			double destX, double destY, ArrayList<RepeatAction> reaptActions,
-			ImportLevel importLevel, MentionAction mentionAction) {
+			ImportLevel importLevel, ArrayList<MentionAction> mentionAction) {
 		// 初始化
 		this.mCreateTime = createTime;
 		this.mTitle = title;
@@ -284,7 +284,8 @@ public class Task {
 	public Task(long createTime, long modifyTime, ModifyAction modifyAction,
 			String title, String content, long expireTime, double destX,
 			double destY, ArrayList<RepeatAction> reaptActions,
-			ImportLevel importLevel, Status status, MentionAction mentionAction) {
+			ImportLevel importLevel, Status status,
+			ArrayList<MentionAction> mentionAction) {
 		super();
 		this.mCreateTime = createTime;
 		this.mModifyTime = modifyTime;
@@ -388,11 +389,11 @@ public class Task {
 		this.mStatus = status;
 	}
 
-	public MentionAction getMentionAction() {
+	public ArrayList<MentionAction> getMentionAction() {
 		return mMentionAction;
 	}
 
-	public void setMentionAction(MentionAction mentionAction) {
+	public void setMentionAction(ArrayList<MentionAction> mentionAction) {
 		this.mMentionAction = mentionAction;
 	}
 

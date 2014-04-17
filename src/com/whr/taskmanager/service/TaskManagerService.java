@@ -1,8 +1,6 @@
 package com.whr.taskmanager.service;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
 
 import org.apache.http.Header;
 import org.json.JSONException;
@@ -13,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,13 +40,13 @@ public class TaskManagerService extends Service {
 	private static final String TAG = "TaskManager";
 
 	private static final String LOGIN_URL = "http://www.baidu.com";
-	
+
 	private static final String REGISTER_URL = "http://www.baidu.com";
 
 	private static final String PUSH_PUSH_MSG_URL = "http://www.baidu.com";
 
 	private static final String PUSH_LOCATION_URL = "http://www.baidu.com";
-	
+
 	private static final String PUSH_MSG_URL = "http://www.baidu.com";
 
 	private static final int ERROR_MESSAGE = 0x999;
@@ -60,7 +59,6 @@ public class TaskManagerService extends Service {
 	 * 是否初始化结束
 	 */
 	private boolean mIsIniting = false;
-
 	/**
 	 * 是否通过推送验证，并获得信息
 	 */
@@ -70,17 +68,14 @@ public class TaskManagerService extends Service {
 
 	private ArrayList<Task> mTotalTasks;
 	/**
-	 * 待操作的任务列表
-	 */
-	private Queue<Task> mOpeTasks;
-
-	/**
 	 * 用户
 	 */
 	private static User mUser;
 
 	public LocationClient mLocationClient = null;
 	public BDLocationListener myListener = new MyLocationListener();
+
+	private SharedPreferences mSharedPreferences;
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -100,6 +95,9 @@ public class TaskManagerService extends Service {
 
 			case LOGIN:
 				// 启动初始化线程
+				mSharedPreferences.edit()
+						.putString("lastLoginUserName", (String) msg.obj)
+						.commit();
 				mIsIniting = true;
 				new Thread(mInitLocalRunnable).start();
 				break;
@@ -136,7 +134,8 @@ public class TaskManagerService extends Service {
 										.getLong("ResponseTest");
 								// 添加服务器最后一次更新时间
 								mUser.setLastServerTime(resResponseTest);
-								mHandler.sendEmptyMessage(LOGIN);
+								mHandler.obtainMessage(LOGIN, userName)
+										.sendToTarget();
 							} else if ("Error".equals(resResult)) {
 								String errorMsg = jsonContent
 										.getString("ResponseTest");
@@ -173,7 +172,7 @@ public class TaskManagerService extends Service {
 			});
 		}
 
-		public void register(final String userName,final String password){
+		public void register(final String userName, final String password) {
 			AsyncHttpClient client = new AsyncHttpClient();
 			RequestParams params = new RequestParams();
 			params.put("UserName", userName);
@@ -196,7 +195,8 @@ public class TaskManagerService extends Service {
 								// 添加服务器最后一次更新时间,last request time
 								mUser.setLastServerTime(resResponseTest);
 								mUser.setLastRequestTime(resResponseTest);
-								mHandler.sendEmptyMessage(LOGIN);
+								mHandler.obtainMessage(LOGIN, userName)
+										.sendToTarget();
 							} else if ("Error".equals(resResult)) {
 								String errorMsg = jsonContent
 										.getString("ResponseTest");
@@ -232,6 +232,7 @@ public class TaskManagerService extends Service {
 				}
 			});
 		}
+
 		/**
 		 * 注册回调
 		 * 
@@ -258,7 +259,8 @@ public class TaskManagerService extends Service {
 				String message = intent.getExtras().getString(
 						PushConstants.EXTRA_PUSH_MESSAGE_STRING);
 				// 消息的用户自定义内容读取方式
-				Log.d(TAG, "onMessage: " + message);
+				Log.d(TAG, "PushMsg: " + message);
+				getMsgFromServer(message);
 
 			} else if (intent.getAction().equals(PushConstants.ACTION_RECEIVE)) {
 				String content = "";
@@ -309,9 +311,10 @@ public class TaskManagerService extends Service {
 
 		// 初始化一个用户
 		mUser = new User();
-		// 初始化任务操作
-		mOpeTasks = new LinkedList<Task>();
-
+		// 初始化sharePreference
+		mSharedPreferences = getSharedPreferences("TaskManager", 0);
+		// 获取最后一次登录用户名
+		mUser.setUserName(mSharedPreferences.getString("lastLoginUserName", ""));
 		// 以apikey的方式登录,启动推送
 		PushManager.startWork(getApplicationContext(),
 				PushConstants.LOGIN_TYPE_API_KEY,
@@ -332,7 +335,6 @@ public class TaskManagerService extends Service {
 		option.setIsNeedAddress(true);// 返回的定位结果包含地址信息
 		option.setNeedDeviceDirect(true);// 返回的定位结果包含手机机头的方向
 		mLocationClient.setLocOption(option);
-		mLocationClient.start();
 	}
 
 	@Override
@@ -366,8 +368,8 @@ public class TaskManagerService extends Service {
 			mIsIniting = true;
 			// 3.向服务器上传推送账号
 			pushPushMsg(0);
-			// 4.允许向服务器推送地理位置
-			pushLocationMsg(0);
+			// 4.启动地理位置，允许向服务器推送地理位置
+			mLocationClient.start();
 			// 5.根据时间，向服务器上传客户端的任务
 			ArrayList<Task> mNeedUpdateToServer = new ArrayList<Task>();
 			for (int i = 0; i < mTotalTasks.size(); i++) {
@@ -480,5 +482,15 @@ public class TaskManagerService extends Service {
 				}
 			}
 		});
+	}
+
+	private void getMsgFromServer(String msg) {
+		ArrayList<Task> getFromServer = JsonParser.getTasksFromJsonString(msg,
+				mUser);
+		if (getFromServer.size() != 0) {
+			// 加进数组中，更新界面，更新数据库
+			mTotalTasks.addAll(getFromServer);
+			
+		}
 	}
 }

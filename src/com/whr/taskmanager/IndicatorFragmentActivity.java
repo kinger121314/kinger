@@ -61,6 +61,7 @@ public abstract class IndicatorFragmentActivity extends FragmentActivity
 		@Override
 		public Fragment getItem(int pos) {
 			Fragment fragment = null;
+			
 			if (tabs != null && pos < tabs.size()) {
 				TabInfo tab = tabs.get(pos);
 				if (tab == null)
