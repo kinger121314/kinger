@@ -1,6 +1,7 @@
 package com.whr.taskmanager;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -24,6 +25,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.whr.taskmanager.bean.Task;
 import com.whr.taskmanager.service.TaskManagerService;
 import com.whr.taskmanager.service.TaskManagerService.MyIBinder;
 import com.whr.taskmanager.service.TaskManagerServiceCallBack;
@@ -67,7 +69,7 @@ public class LoginActivity extends Activity implements OnClickListener {
 					String password = mPassword.getText().toString();
 					try {
 						userName = AESEncryptor.encrypt("mUserName", userName);
-						password = AESEncryptor.encrypt("mPassword", userName);
+						password = AESEncryptor.encrypt("mPassword", password);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -151,6 +153,10 @@ public class LoginActivity extends Activity implements OnClickListener {
 
 			@Override
 			public void registerSuccess() {
+			}
+
+			@Override
+			public void initTasksData(ArrayList<Task> tasks) {
 			}
 		};
 		initView();

@@ -3,23 +3,20 @@
     <item
         android:id="@+id/action_voice"
         android:icon="@drawable/voice"
-        android:showAsAction="ifRoom|withText"
-        android:title="语音"/>
+        android:showAsAction="ifRoom"/>
     <item
         android:id="@+id/action_add_new"
         android:icon="@drawable/add"
-        android:showAsAction="ifRoom|withText"
-        android:title="添加"/>
+        android:showAsAction="ifRoom"/>
     <item
         android:icon="@drawable/setting"
-        android:showAsAction="always"
-        android:title="更多">
+        android:showAsAction="always">
         <menu>
             <group>
                 <item
                     android:id="@+id/action_user"
                     android:icon="@drawable/ic_launcher"
-                    android:title="用户名"/>
+                    android:title="帐号切换"/>
                 <item
                     android:id="@+id/action_settings"
                     android:icon="@drawable/setting"

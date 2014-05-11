@@ -18,9 +18,28 @@
         <item name="android:fadeScrollbars">true</item>
     </style>
 
-    <style name="CustomCheckboxTheme" parent="@android:style/Widget.CompoundButton.CheckBox">
-        <item name="android:button">@drawable/checkbox_stype</item>
+    <style name="CustomCheckboxTheme1" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkbox_stype1</item>
     </style>
+        <style name="CustomCheckboxTheme2" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkbox_stype2</item>
+    </style>
+        <style name="CustomCheckboxTheme3" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkbox_stype3</item>
+    </style>
+        <style name="CustomCheckboxTheme4" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkbox_stype4</item>
+    </style>
+        <style name="CustomCheckboxTheme5" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkbox_stype5</item>
+    </style>
+        <style name="CustomCheckboxTheme6" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkbox_stype6</item>
+    </style>
+        <style name="CustomCheckboxTheme7" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkbox_stype7</item>
+    </style>
+    
 
     <style name="dialog" parent="@android:style/Theme.Dialog">
         <item name="android:windowFrame">@null</item>

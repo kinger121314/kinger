@@ -1,6 +1,10 @@
 package com.whr.taskmanager;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,6 +30,7 @@ import com.baidu.mapapi.search.MKTransitRouteResult;
 import com.baidu.mapapi.search.MKWalkingRouteResult;
 import com.whr.taskmanager.util.TaskApplication;
 import com.whr.taskmanager.view.MyPoiOverlay;
+import com.whr.taskmanager.view.MyPoiOverlay.onItemClickShow;
 
 /**
  * 演示poi搜索功能
@@ -57,9 +62,11 @@ public class PoiSearchActivity extends Activity {
 					new TaskApplication.MyGeneralListener());
 		}
 		setContentView(R.layout.activity_poisearch);
+		
 		mMapView = (MapView) findViewById(R.id.bmapView);
 		mMapView.getController().enableClick(true);
-		mMapView.getController().setZoom(12);
+		mMapView.getController().setZoom(14);
+		
 		// 初始化搜索模块，注册搜索事件监听
 		mSearch = new MKSearch();
 		mSearch.init(app.mBMapManager, new MKSearchListener() {
@@ -84,6 +91,57 @@ public class PoiSearchActivity extends Activity {
 					MyPoiOverlay poiOverlay = new MyPoiOverlay(
 							PoiSearchActivity.this, mMapView, mSearch);
 					poiOverlay.setData(res.getAllPoi());
+					poiOverlay.regeistOnItemClickShow(new onItemClickShow() {
+
+						@Override
+						public void click(final MKPoiInfo info) {
+							// 发送删除该联系人请求
+							Dialog delDialog = new AlertDialog.Builder(
+									PoiSearchActivity.this)
+									.setTitle(info.name)
+									.setMessage("是否确认选择该点")
+									.setPositiveButton(
+											"确认",
+											// 确认按钮监听器
+											new DialogInterface.OnClickListener() {
+												@Override
+												public void onClick(
+														DialogInterface dialog,
+														int which) {
+													Intent intent = new Intent(
+															PoiSearchActivity.this,
+															NewTaskActivity.class);
+													String name = info.name;
+													long latiude = info.pt
+															.getLatitudeE6();
+													long longitude = info.pt
+															.getLongitudeE6();
+													intent.putExtra("name",
+															name);
+													intent.putExtra("latiude",
+															latiude);
+													intent.putExtra(
+															"longitude",
+															longitude);
+													setResult(RESULT_OK, intent);
+													PoiSearchActivity.this
+															.finish();
+												}
+											})
+									.setNegativeButton(
+											"取消",
+											// 取消按钮监听器
+											new DialogInterface.OnClickListener() {
+												@Override
+												public void onClick(
+														DialogInterface dialog,
+														int which) {
+													// 取消删除
+												}
+											}).create();
+							delDialog.show();
+						}
+					});
 					mMapView.getOverlays().clear();
 					mMapView.getOverlays().add(poiOverlay);
 					mMapView.refresh();

@@ -86,14 +86,6 @@ public class Task {
 	 */
 	public enum ImportLevel {
 		/**
-		 * 最低
-		 */
-		LOWEST,
-		/**
-		 * 比较低
-		 */
-		LOWER,
-		/**
 		 * 普通
 		 */
 		COMMON,
@@ -173,6 +165,11 @@ public class Task {
 	 * 到期时间
 	 */
 	private long mExpireTime;
+	
+	/**
+	 * 地理位置
+	 */
+	private String mAdress = "";
 	/**
 	 * 纬度
 	 */
@@ -189,7 +186,7 @@ public class Task {
 	/**
 	 * 重要等级
 	 */
-	private ImportLevel mImportLevel = ImportLevel.LOWEST;
+	private ImportLevel mImportLevel = ImportLevel.COMMON;
 	/**
 	 * 任务状态
 	 */
@@ -397,4 +394,12 @@ public class Task {
 		this.mMentionAction = mentionAction;
 	}
 
+	public String getAdress() {
+		return mAdress;
+	}
+
+	public void setAdress(String adress) {
+		this.mAdress = adress;
+	}
+	
 }

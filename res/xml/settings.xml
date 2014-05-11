@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="设置" >
+
+    <PreferenceCategory android:title="默认设置" >
+        <CheckBoxPreference
+            android:key="voice_default"
+            android:summary="每次新任务都启用铃声"
+            android:title="铃声" />
+        <CheckBoxPreference
+            android:key="shake_default"
+            android:summary="每次新任务都启用震动"
+            android:title="震动" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

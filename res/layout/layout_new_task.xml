@@ -5,7 +5,9 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true" >
 
         <EditText
             android:id="@+id/title"
@@ -49,7 +51,6 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
                     android:layout_centerVertical="true"
-                    android:text="广州天河区中山大道西"
                     android:textSize="22sp" />
 
                 <ImageView
@@ -58,6 +59,14 @@
                     android:layout_height="32dp"
                     android:layout_alignParentRight="true"
                     android:src="@drawable/coord" />
+
+                <ImageView
+                    android:id="@+id/deletelocation"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_alignParentRight="true"
+                    android:src="@drawable/garbage"
+                    android:visibility="gone" />
             </RelativeLayout>
         </LinearLayout>
 
@@ -88,37 +97,44 @@
             android:orientation="horizontal" >
 
             <CheckBox
-                style="@style/CustomCheckboxTheme"
+                android:id="@+id/cb_mon"
+                style="@style/CustomCheckboxTheme1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <CheckBox
-                style="@style/CustomCheckboxTheme"
+                android:id="@+id/cb_tue"
+                style="@style/CustomCheckboxTheme2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <CheckBox
-                style="@style/CustomCheckboxTheme"
+                android:id="@+id/cb_wed"
+                style="@style/CustomCheckboxTheme3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <CheckBox
-                style="@style/CustomCheckboxTheme"
+                android:id="@+id/cb_thu"
+                style="@style/CustomCheckboxTheme4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <CheckBox
-                style="@style/CustomCheckboxTheme"
+                android:id="@+id/cb_fri"
+                style="@style/CustomCheckboxTheme5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <CheckBox
-                style="@style/CustomCheckboxTheme"
+                android:id="@+id/cb_sat"
+                style="@style/CustomCheckboxTheme6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <CheckBox
-                style="@style/CustomCheckboxTheme"
+                android:id="@+id/cb_sun"
+                style="@style/CustomCheckboxTheme7"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -146,6 +162,7 @@
                 android:padding="2dp" >
 
                 <TextView
+                    android:id="@+id/dataHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
@@ -168,6 +185,7 @@
                 android:padding="2dp" >
 
                 <TextView
+                    android:id="@+id/timeHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
@@ -208,7 +226,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/hint_import"
             android:layout_centerHorizontal="true"
-            android:numStars="5"
+            android:numStars="3"
             android:rating="1"
             android:stepSize="1" />
 
@@ -229,12 +247,14 @@
                 android:text="响铃"
                 android:textSize="22sp" />
 
-            <Switch
+            <ToggleButton
+                android:id="@+id/swith_voice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textOff="关闭"
-                android:textOn="打开" />
+                android:background="@drawable/toggle_selector"
+                android:textOff=""
+                android:textOn="" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -244,12 +264,14 @@
                 android:text="震动"
                 android:textSize="22sp" />
 
-            <Switch
+            <ToggleButton
+                android:id="@+id/swith_shake"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textOff="关闭"
-                android:textOn="打开" />
+                android:background="@drawable/toggle_selector"
+                android:textOff=""
+                android:textOn="" />
         </LinearLayout>
 
         <View

@@ -57,7 +57,39 @@ public class JsonParser {
 		return null;
 	}
 
-	public static  ArrayList<Task> getTasksFromJsonString(String jsonString, User user) {
+	public static String getJsonStringFromTasks(Task tmpTask) {
+		// 如果为空 则返回null
+		if (tmpTask==null){
+			return null;
+		}
+		try {
+			JSONObject taskJson = new JSONObject();
+			JSONArray tasksArr = new JSONArray();
+			Task task = tmpTask;
+			JSONObject tmp = new JSONObject();
+			tmp.put("CreateTime", task.getCreateTime());
+			tmp.put("ModifyTime", task.getModifyTime());
+			tmp.put("ModifyAction", task.getModifyAction().toString());
+			tmp.put("Title", task.getTitle());
+			tmp.put("Content", task.getContent());
+			tmp.put("ExpireTime", task.getExpireTime());
+			tmp.put("Longitude", task.getLongitude());
+			tmp.put("Latitude", task.getLatitude());
+			tmp.put("Repeat", task.getReaptAction());
+			tmp.put("ImportLevel", task.getImportLevel().toString());
+			tmp.put("Status", task.getStatus().toString());
+			tmp.put("MentionAction", task.getMentionAction().toString());
+			tasksArr.put(tmp);
+			taskJson.put("Tasks", tasksArr);
+			return taskJson.toString();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static ArrayList<Task> getTasksFromJsonString(String jsonString,
+			User user) {
 		ArrayList<Task> tasks = new ArrayList<Task>();
 		try {
 			JSONObject json = new JSONObject(jsonString);

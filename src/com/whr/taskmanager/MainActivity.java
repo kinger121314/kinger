@@ -2,21 +2,27 @@ package com.whr.taskmanager;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.speech.RecognizerIntent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +31,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,11 +48,19 @@ import com.iflytek.speech.TextUnderstander;
 import com.iflytek.speech.TextUnderstanderListener;
 import com.iflytek.speech.UnderstanderResult;
 import com.iflytek.speech.UtilityConfig;
-import com.whr.fragment.BaseFragment;
 import com.whr.taskmanager.bean.TabInfo;
+import com.whr.taskmanager.bean.Task;
+import com.whr.taskmanager.bean.Task.Status;
 import com.whr.taskmanager.bean.VoiceMsg;
+import com.whr.taskmanager.comparator.HistorySortComparator;
+import com.whr.taskmanager.comparator.LevelSortComparator;
+import com.whr.taskmanager.comparator.TimeSortComparator;
+import com.whr.taskmanager.service.TaskManagerService;
+import com.whr.taskmanager.service.TaskManagerService.MyIBinder;
+import com.whr.taskmanager.service.TaskManagerServiceCallBack;
 import com.whr.taskmanager.util.ApkInstaller;
 import com.whr.taskmanager.util.XmlParser;
+import com.whr.taskmanager.view.BaseFragment;
 
 public class MainActivity extends IndicatorFragmentActivity {
 
@@ -56,9 +74,44 @@ public class MainActivity extends IndicatorFragmentActivity {
 	private static final int REQUEST_CODE_SEARCH = 1099;
 	private static final int INSTALL_SERVER = 0x001;
 	private static final int CANCEL_DIALOG = 0x002;
+	private static final int UPDATE_VIEW = 0x003;
 	private Dialog mLoadDialog;
 	private TextUnderstander mTextUnderstander;
 
+	private TabInfo mTimeTabInfo;
+	private TabInfo mLevelTabInfo;
+	private TabInfo mHistoryTabInfo;
+	/**
+	 * 时间
+	 */
+	private BaseFragment mTimeBaseFragment;
+
+	/**
+	 * 等级
+	 */
+	private BaseFragment mLevelBaseFragment;
+
+	/**
+	 * 历史
+	 */
+	private BaseFragment mHistoryBaseFragment;
+
+	MyIBinder mBinder;
+	TaskManagerServiceCallBack mCallBack;
+	ServiceConnection mConn = new ServiceConnection() {
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBinder.unRegisterCallBack();
+			mBinder = null;
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName arg0, IBinder arg1) {
+			mBinder = (MyIBinder) arg1;
+			mBinder.registerCallBack(mCallBack);
+		}
+	};
 	private Handler mHandler = new Handler(new Handler.Callback() {
 
 		@Override
@@ -75,6 +128,306 @@ public class MainActivity extends IndicatorFragmentActivity {
 				if (mLoadDialog != null) {
 					mLoadDialog.dismiss();
 				}
+				break;
+
+			case UPDATE_VIEW:
+				mTimeBaseFragment = (BaseFragment) mTimeTabInfo.fragment;
+				mLevelBaseFragment = (BaseFragment) mLevelTabInfo.fragment;
+				mHistoryBaseFragment = (BaseFragment) mHistoryTabInfo.fragment;
+
+				ArrayList<Task> datas = (ArrayList<Task>) msg.obj;
+				ArrayList<Task> timeActiveDatas = new ArrayList<Task>();
+				ArrayList<Task> levelActiveDatas = new ArrayList<Task>();
+				ArrayList<Task> noActiveDatas = new ArrayList<Task>();
+				for (int i = 0; i < datas.size(); i++) {
+					if (datas.get(i).getStatus().equals(Status.ACTIVE)) {
+						timeActiveDatas.add(datas.get(i));
+						levelActiveDatas.add(datas.get(i));
+					} else {
+						noActiveDatas.add(datas.get(i));
+					}
+				}
+				// 更新
+				Comparator<Task> comp = new TimeSortComparator();
+				Collections.sort(timeActiveDatas, comp);
+				mTimeBaseFragment.mlistItems = timeActiveDatas;
+				mTimeBaseFragment.adapter.notifyDataSetChanged();
+				mTimeBaseFragment.listView
+						.setOnItemClickListener(new OnItemClickListener() {
+
+							@Override
+							public void onItemClick(AdapterView<?> parent,
+									View view, int position, long id) {
+								Intent intent = new Intent(MainActivity.this,
+										NewTaskActivity.class);
+								intent.putExtra(
+										"task",
+										mTimeBaseFragment.mlistItems.get(
+												position).getCreateTime());
+								startActivity(intent);
+							}
+						});
+
+				mTimeBaseFragment.listView
+						.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+							@Override
+							public boolean onItemLongClick(
+									AdapterView<?> parent, final View view,
+									final int position, long id) {
+								String[] selectionArgs = getResources()
+										.getStringArray(R.array.active_item);
+								ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(
+										MainActivity.this,
+										R.layout.pop_listview_item,
+										R.id.tv_list_item_1, selectionArgs);
+								new AlertDialog.Builder(MainActivity.this)
+										.setTitle("选择操作")
+										.setAdapter(
+												listAdapter,
+												new DialogInterface.OnClickListener() {
+													@Override
+													public void onClick(
+															DialogInterface dialog,
+															int which) {
+														switch (which) {
+														case 0:
+															mBinder.changeTaskStatus(
+																	mTimeBaseFragment.mlistItems
+																			.get(position)
+																			.getCreateTime(),
+																	false);
+															break;
+
+														case 1:
+															// 发送删除该联系人请求
+															Dialog delDialog = new AlertDialog.Builder(
+																	MainActivity.this)
+																	.setTitle(
+																			"删除任务")
+																	.setMessage(
+																			"是否确认删除任务")
+																	.setPositiveButton(
+																			"确认",
+																			// 确认按钮监听器
+																			new DialogInterface.OnClickListener() {
+																				@Override
+																				public void onClick(
+																						DialogInterface dialog,
+																						int which) {
+																					// 请求删除该联系人
+																					mBinder.deleteTask(mTimeBaseFragment.mlistItems
+																							.get(position)
+																							.getCreateTime());
+																				}
+																			})
+																	.setNegativeButton(
+																			"取消",
+																			// 取消按钮监听器
+																			new DialogInterface.OnClickListener() {
+																				@Override
+																				public void onClick(
+																						DialogInterface dialog,
+																						int which) {
+																					// 取消删除
+																				}
+																			})
+																	.create();
+															delDialog.show();
+															break;
+														}
+													}
+												}).show();
+								return true;
+							}
+						});
+
+				comp = new LevelSortComparator();
+				Collections.sort(levelActiveDatas, comp);
+				mLevelBaseFragment.mlistItems = levelActiveDatas;
+				mLevelBaseFragment.adapter.notifyDataSetChanged();
+				mLevelBaseFragment.listView
+						.setOnItemClickListener(new OnItemClickListener() {
+
+							@Override
+							public void onItemClick(AdapterView<?> parent,
+									View view, int position, long id) {
+								Intent intent = new Intent(MainActivity.this,
+										NewTaskActivity.class);
+								intent.putExtra(
+										"task",
+										mLevelBaseFragment.mlistItems.get(
+												position).getCreateTime());
+								startActivity(intent);
+							}
+						});
+
+				mLevelBaseFragment.listView
+						.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+							@Override
+							public boolean onItemLongClick(
+									AdapterView<?> parent, final View view,
+									final int position, long id) {
+								String[] selectionArgs = getResources()
+										.getStringArray(R.array.active_item);
+								ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(
+										MainActivity.this,
+										R.layout.pop_listview_item,
+										R.id.tv_list_item_1, selectionArgs);
+								new AlertDialog.Builder(MainActivity.this)
+										.setTitle("选择操作")
+										.setAdapter(
+												listAdapter,
+												new DialogInterface.OnClickListener() {
+													@Override
+													public void onClick(
+															DialogInterface dialog,
+															int which) {
+														switch (which) {
+														case 0:
+															mBinder.changeTaskStatus(
+																	mLevelBaseFragment.mlistItems
+																			.get(position)
+																			.getCreateTime(),
+																	false);
+															break;
+
+														case 1:
+															// 发送删除该联系人请求
+															Dialog delDialog = new AlertDialog.Builder(
+																	MainActivity.this)
+																	.setTitle(
+																			"删除任务")
+																	.setMessage(
+																			"是否确认删除任务")
+																	.setPositiveButton(
+																			"确认",
+																			// 确认按钮监听器
+																			new DialogInterface.OnClickListener() {
+																				@Override
+																				public void onClick(
+																						DialogInterface dialog,
+																						int which) {
+																					// 请求删除该联系人
+																					mBinder.deleteTask(mLevelBaseFragment.mlistItems
+																							.get(position)
+																							.getCreateTime());
+																				}
+																			})
+																	.setNegativeButton(
+																			"取消",
+																			// 取消按钮监听器
+																			new DialogInterface.OnClickListener() {
+																				@Override
+																				public void onClick(
+																						DialogInterface dialog,
+																						int which) {
+																					// 取消删除
+																				}
+																			})
+																	.create();
+															delDialog.show();
+															break;
+														}
+													}
+												}).show();
+								return true;
+							}
+						});
+				comp = new HistorySortComparator();
+				Collections.sort(noActiveDatas, comp);
+				mHistoryBaseFragment.mlistItems = noActiveDatas;
+				mHistoryBaseFragment.adapter.notifyDataSetChanged();
+				mHistoryBaseFragment.listView
+						.setOnItemClickListener(new OnItemClickListener() {
+
+							@Override
+							public void onItemClick(AdapterView<?> parent,
+									View view, int position, long id) {
+								Intent intent = new Intent(MainActivity.this,
+										NewTaskActivity.class);
+								intent.putExtra(
+										"task",
+										mHistoryBaseFragment.mlistItems.get(
+												position).getCreateTime());
+								startActivity(intent);
+							}
+						});
+
+				mHistoryBaseFragment.listView
+						.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+							@Override
+							public boolean onItemLongClick(
+									AdapterView<?> parent, final View view,
+									final int position, long id) {
+								String[] selectionArgs = getResources()
+										.getStringArray(R.array.no_active_item);
+								ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(
+										MainActivity.this,
+										R.layout.pop_listview_item,
+										R.id.tv_list_item_1, selectionArgs);
+								new AlertDialog.Builder(MainActivity.this)
+										.setTitle("选择操作")
+										.setAdapter(
+												listAdapter,
+												new DialogInterface.OnClickListener() {
+													@Override
+													public void onClick(
+															DialogInterface dialog,
+															int which) {
+														switch (which) {
+														case 0:
+															mBinder.changeTaskStatus(
+																	mHistoryBaseFragment.mlistItems
+																			.get(position)
+																			.getCreateTime(),
+																	true);
+															break;
+
+														case 1:
+															// 发送删除该联系人请求
+															Dialog delDialog = new AlertDialog.Builder(
+																	MainActivity.this)
+																	.setTitle(
+																			"删除任务")
+																	.setMessage(
+																			"是否确认删除任务")
+																	.setPositiveButton(
+																			"确认",
+																			// 确认按钮监听器
+																			new DialogInterface.OnClickListener() {
+																				@Override
+																				public void onClick(
+																						DialogInterface dialog,
+																						int which) {
+																					// 请求删除该联系人
+																					mBinder.deleteTask(mHistoryBaseFragment.mlistItems
+																							.get(position)
+																							.getCreateTime());
+																				}
+																			})
+																	.setNegativeButton(
+																			"取消",
+																			// 取消按钮监听器
+																			new DialogInterface.OnClickListener() {
+																				@Override
+																				public void onClick(
+																						DialogInterface dialog,
+																						int which) {
+																					// 取消删除
+																				}
+																			})
+																	.create();
+															delDialog.show();
+															break;
+														}
+													}
+												}).show();
+								return true;
+							}
+						});
 				break;
 
 			default:
@@ -105,9 +458,16 @@ public class MainActivity extends IndicatorFragmentActivity {
 					if (null != result) {
 						VoiceMsg msg = XmlParser.parseNluResult(result
 								.getResultString());
-						Log.d(TAG, "msg.voiceMsg:" + msg.voiceMsg
-								+ " msg.date:" + msg.date + " msg.time:"
-								+ msg.time);
+						Intent intent = new Intent(MainActivity.this,
+								NewTaskActivity.class);
+						intent.putExtra("voiceMsg", msg.voiceMsg);
+						if (!"".equals(msg.date)) {
+							intent.putExtra("date", msg.date);
+						}
+						if (!"".equals(msg.time)) {
+							intent.putExtra("time", msg.time);
+						}
+						startActivity(intent);
 					}
 				}
 			});
@@ -136,6 +496,57 @@ public class MainActivity extends IndicatorFragmentActivity {
 		SpeechUtility.getUtility(MainActivity.this).setAppid(
 				getString(R.string.app_id));
 		mTextUnderstander = new TextUnderstander(this, textUnderstanderListener);
+		// 启动服务
+		Intent service = new Intent(this, TaskManagerService.class);
+		startService(service);
+		bindService(service, mConn, Context.BIND_AUTO_CREATE);
+
+		mCallBack = new TaskManagerServiceCallBack() {
+
+			@Override
+			public void errorHasHappen(String errorMsg) {
+			}
+
+			@Override
+			public void loginSuccess() {
+			}
+
+			@Override
+			public void registerSuccess() {
+			}
+
+			@Override
+			public void initTasksData(ArrayList<Task> tasks) {
+				mHandler.obtainMessage(UPDATE_VIEW, tasks).sendToTarget();
+			}
+		};
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		mHandler.postDelayed(new Runnable() {
+
+			@Override
+			public void run() {
+				mBinder.registerCallBack(mCallBack);
+				// 延时请求数据
+				mBinder.requestDataList();
+			}
+		}, 0);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		// 取消绑定
+		try {
+			mBinder = null;
+			unbindService(mConn);
+			mTextUnderstander.destory();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -204,6 +615,12 @@ public class MainActivity extends IndicatorFragmentActivity {
 			startActivity(intent);
 			break;
 
+		case R.id.action_settings:
+			intent = new Intent(this, SettingsActivity.class);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(intent);
+			break;
+
 		default:
 			break;
 		}
@@ -219,7 +636,7 @@ public class MainActivity extends IndicatorFragmentActivity {
 			String res = results.get(0);
 			int tcode = mTextUnderstander.understandText(res, textListener);
 			if (tcode != 0) {
-				Toast.makeText(MainActivity.this, "Error:" + res,
+				Toast.makeText(MainActivity.this, "你需要重启应用,使语音生效",
 						Toast.LENGTH_SHORT).show();
 			}
 		}
@@ -236,12 +653,15 @@ public class MainActivity extends IndicatorFragmentActivity {
 
 	@Override
 	protected int supplyTabs(List<TabInfo> tabs) {
-		tabs.add(new TabInfo(0, getString(R.string.fragment_one),
-				BaseFragment.class));
-		tabs.add(new TabInfo(1, getString(R.string.fragment_two),
-				BaseFragment.class));
-		tabs.add(new TabInfo(2, getString(R.string.fragment_three),
-				BaseFragment.class));
+		mTimeTabInfo = new TabInfo(0, getString(R.string.fragment_one),
+				BaseFragment.class);
+		tabs.add(mTimeTabInfo);
+		mLevelTabInfo = new TabInfo(1, getString(R.string.fragment_two),
+				BaseFragment.class);
+		tabs.add(mLevelTabInfo);
+		mHistoryTabInfo = new TabInfo(2, getString(R.string.fragment_three),
+				BaseFragment.class);
+		tabs.add(mHistoryTabInfo);
 
 		return 0;
 	}
@@ -267,12 +687,13 @@ public class MainActivity extends IndicatorFragmentActivity {
 	 */
 	private boolean processInstall(Context context, String url, String assetsApk) {
 		// 直接下载方式
-		ApkInstaller.openDownloadWeb(context, url);
+		// ApkInstaller.openDownloadWeb(context, url);
 		// 本地安装方式
-		// if(!ApkInstaller.installFromAssets(context, assetsApk)){
-		// Toast.makeText(MainActivity.this, "安装失败", Toast.LENGTH_SHORT).show();
-		// return false;
-		// }
+		if (!ApkInstaller.installFromAssets(context, assetsApk)) {
+			Toast.makeText(MainActivity.this, "安装失败", Toast.LENGTH_SHORT)
+					.show();
+			return false;
+		}
 		return true;
 	}
 

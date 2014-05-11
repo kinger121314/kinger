@@ -55,13 +55,14 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 	private static final String TaskTitle = "title";
 	private static final String TaskContent = "content";
 	private static final String TaskExpireTime = "expireTime";
-	private static final String TaskDestX = "destX";
-	private static final String TaskDestY = "destY";
+	private static final String TaskDestX = "latitude";
+	private static final String TaskDestY = "longitude";
 	private static final String TaskReaptAction = "reaptAction";
 	private static final String TaskImportLevel = "importLevel";
 	private static final String TaskStatus = "status";
 	private static final String TaskMentionAction = "mentionAction";
 	private static final String TaskUserName = "userName";
+	private static final String TaskAddress = "address";
 
 	private static final String CreateTaskTable = "create table %s0 (%s1 Long,%s2 Long, %s3 text,%s4 text,%s5 text,%s6 Long,%s7 Double,%s8 Double,%s9 text, "
 			.replace("%s0", TaskTable).replace("%s1", TaskCreateTime)
@@ -69,16 +70,19 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 			.replace("%s4", TaskTitle).replace("%s5", TaskContent)
 			.replace("%s6", TaskExpireTime).replace("%s7", TaskDestX)
 			.replace("%s8", TaskDestY).replace("%s9", TaskReaptAction)
-			+ " %s0 integer,%s1 text,%s2 text,%s3 text)"
+			+ " %s0 integer,%s1 text,%s2 text,%s3 text,%s4 text)"
 					.replace("%s0", TaskImportLevel).replace("%s1", TaskStatus)
 					.replace("%s2", TaskMentionAction)
-					.replace("$s3", TaskUserName);
+					.replace("%s3", TaskUserName)
+					.replace("%s4", TaskAddress);
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		try {
 			db.execSQL(CreateUserTable);
+			Log.d(TAG, CreateUserTable);
 			db.execSQL(CreateTaskTable);
+			Log.d(TAG, CreateTaskTable);
 		} catch (Exception e) {
 			Log.d(TAG, e.toString());
 		}
@@ -169,6 +173,8 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 
 				double destX = res.getDouble(res.getColumnIndex(TaskDestX));
 				double destY = res.getDouble(res.getColumnIndex(TaskDestY));
+				
+				String address = res.getString(res.getColumnIndex(TaskAddress));
 
 				ArrayList<RepeatAction> reaptActions = new ArrayList<Task.RepeatAction>();
 				String repeatActionString = res.getString(res
@@ -209,6 +215,7 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 				Task task = new Task(createTime, modifyTime, modifyAction,
 						title, content, expireTime, destX, destY, reaptActions,
 						importLevel, status, mentionActions);
+				task.setAdress(address);
 				tasks.add(task);
 			}
 			db.setTransactionSuccessful(); // 设置事务成功完成
@@ -233,8 +240,9 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 			contentValues.put(TaskTitle, task.getTitle());
 			contentValues.put(TaskContent, task.getContent());
 			contentValues.put(TaskExpireTime, task.getExpireTime());
-			contentValues.put(TaskDestX, task.getLongitude());
-			contentValues.put(TaskDestY, task.getLatitude());
+			contentValues.put(TaskDestX, task.getLatitude());
+			contentValues.put(TaskDestY, task.getLongitude());
+			contentValues.put(TaskAddress, task.getAdress());
 			ArrayList<RepeatAction> reaptActions = task.getReaptAction();
 			String reaptActionString = "";
 			for (int i = 0; i < reaptActions.size(); i++) {
@@ -278,8 +286,9 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 			contentValues.put(TaskTitle, task.getTitle());
 			contentValues.put(TaskContent, task.getContent());
 			contentValues.put(TaskExpireTime, task.getExpireTime());
-			contentValues.put(TaskDestX, task.getLongitude());
-			contentValues.put(TaskDestY, task.getLatitude());
+			contentValues.put(TaskDestX, task.getLatitude());
+			contentValues.put(TaskDestY, task.getLongitude());
+			contentValues.put(TaskAddress, task.getAdress());
 			ArrayList<RepeatAction> reaptActions = task.getReaptAction();
 			String reaptActionString = "";
 			for (int i = 0; i < reaptActions.size(); i++) {
@@ -305,6 +314,22 @@ public class TaskManagerDB extends SQLiteOpenHelper {
 			String[] whereArgs = new String[] { "" + task.getCreateTime() };
 			db.update(TaskTable, contentValues,
 					"%s0 = ?".replace("%s0", TaskCreateTime), whereArgs);
+			db.setTransactionSuccessful();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			db.endTransaction();
+		}
+		return isRes;
+	}
+
+	public synchronized boolean deleteTask(String userName, Task task) {
+		boolean isRes = false;
+		db.beginTransaction();
+		try {
+			String[] whereArgs = new String[] { "" + task.getCreateTime() };
+			db.delete(TaskTable, "%s0 = ?".replace("%s0", TaskCreateTime),
+					whereArgs);
 			db.setTransactionSuccessful();
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -54,7 +54,6 @@ public class XmlParser {
 				msg.time = time.getFirstChild().getNodeValue();
 			} catch (Exception e) {
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

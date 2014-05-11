@@ -1,6 +1,7 @@
 package com.whr.taskmanager;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -21,6 +22,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.whr.taskmanager.bean.Task;
 import com.whr.taskmanager.service.TaskManagerService;
 import com.whr.taskmanager.service.TaskManagerService.MyIBinder;
 import com.whr.taskmanager.service.TaskManagerServiceCallBack;
@@ -123,8 +125,10 @@ public class RegisterActivity extends Activity implements OnClickListener {
 
 			@Override
 			public void registerSuccess() {
-				// TODO Auto-generated method stub
+			}
 
+			@Override
+			public void initTasksData(ArrayList<Task> tasks) {
 			}
 		};
 		initView();

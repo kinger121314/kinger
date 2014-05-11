@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="active_item">
+
+　　                          <item>停用任务</item>
+        <item>删除任务</item>
+
+
+　　    </string-array>
+    <string-array name="no_active_item">
+
+　　                          <item>激活任务</item>
+        <item>删除任务</item>
+
+
+　　    </string-array>
+
+</resources>
