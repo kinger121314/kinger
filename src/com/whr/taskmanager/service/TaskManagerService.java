@@ -59,15 +59,15 @@ public class TaskManagerService extends Service {
 
 	private static final String TAG = "TaskManager";
 
-	private static final String LOGIN_URL = "http://192.168.0.106:8080/TaskManagerDemo/LoginServlet";
+	private static final String LOGIN_URL = "http://192.168.191.11:8080/emper/loginController.do?login2";
 
-	private static final String REGISTER_URL = "http://192.168.0.106:8080/TaskManagerDemo/UpdateServlet";
+	private static final String REGISTER_URL = "http://192.168.191.11:8080/emper/loginController.do?phoneRegist";
 
-	private static final String PUSH_PUSH_MSG_URL = "http://192.168.0.106:8080/TaskManagerDemo/UpdateServlet";
+	private static final String PUSH_PUSH_MSG_URL = "http://192.168.191.11:8080/emper/loginController.do?getPushId";
 
-	private static final String PUSH_LOCATION_URL = "http://192.168.0.106:8080/TaskManagerDemo/UpdateServlet";
+	private static final String PUSH_LOCATION_URL = "http://192.168.191.11:8080/emper/loginController.do?phoneLocation";
 
-	private static final String PUSH_MSG_URL = "http://192.168.0.106:8080/TaskManagerDemo/UpdateServlet";
+	private static final String PUSH_MSG_URL = "http://192.168.191.11:8080/emper/loginController.do?phoneTask";
 
 	private static final int ERROR_MESSAGE = 0x999;
 
@@ -229,10 +229,12 @@ public class TaskManagerService extends Service {
 					try {
 						JSONObject jsonContent = new JSONObject(content);
 						String resUserName = jsonContent.getString("UserName");
+						
 						// 如果服务器反馈回来的不是正确的信息
 						if (userName.equals(resUserName)) {
 							String resResult = jsonContent.getString("Result");
 							if ("Success".equals(resResult)) {
+								
 								long resResponseTest = jsonContent
 										.getLong("ResponseTest");
 								// 添加服务器最后一次更新时间,last request time
@@ -240,6 +242,7 @@ public class TaskManagerService extends Service {
 								mUser.setLastRequestTime(resResponseTest);
 								mHandler.obtainMessage(LOGIN, userName)
 										.sendToTarget();
+								Log.d(TAG, "success");
 							} else if ("Error".equals(resResult)) {
 								String errorMsg = jsonContent
 										.getString("ResponseTest");
@@ -343,7 +346,10 @@ public class TaskManagerService extends Service {
 		}
 
 		public void addNewTask(Task task) {
-
+			if (getTaskMsgFromCreateTime(task.getCreateTime())!=null){
+				updateTask(task, true,false);
+				return;
+			}
 			mTotalTasks.add(task);
 			startAlarm(task);
 			// 提交服务器
@@ -356,7 +362,7 @@ public class TaskManagerService extends Service {
 					mUser.getUserName(), task);
 		}
 
-		public void updateTask(Task task, boolean isCallAlarm) {
+		public void updateTask(Task task, boolean isCallAlarm,boolean isSendToServer) {
 			int updateIndex = -1;
 			for (int i = 0; i < mTotalTasks.size(); i++) {
 				if (mTotalTasks.get(i).getCreateTime() == task.getCreateTime()) {
@@ -371,11 +377,11 @@ public class TaskManagerService extends Service {
 			mTotalTasks.add(task);
 			// 提交服务器
 			String msg = JsonParser.getJsonStringFromTasks(task);
-			if (msg != null) {
+			if (msg != null && isSendToServer) {
 				pushTaskMsg(msg, 1);
 			}
 			cancelAlarm(task);
-			if (isCallAlarm) {
+			if (isCallAlarm && task.getStatus() == Status.ACTIVE) {
 				startAlarm(task);
 			}
 			// 进入数据库
@@ -550,14 +556,14 @@ public class TaskManagerService extends Service {
 			}
 			if (isShow) {
 				task.setStatus(Status.NOTACTIVE);
-				mIBinder.updateTask(task, false);
+				mIBinder.updateTask(task, false,true);
 			} else {
 				Date nextDate = new Date(task.getExpireTime());
 				nextDate.setDate(date.getDate());
 				nextDate.setMonth(date.getMonth());
 				nextDate.setYear(date.getYear());
 				task.setExpireTime(nextDate.getTime());
-				mIBinder.updateTask(task, true);
+				mIBinder.updateTask(task, true,true);
 			}
 		}
 	}
@@ -614,7 +620,7 @@ public class TaskManagerService extends Service {
 		LocationClientOption option = new LocationClientOption();
 		option.setLocationMode(LocationMode.Hight_Accuracy);// 设置定位模式
 		option.setCoorType("bd09ll");// 返回的定位结果是百度经纬度
-		option.setScanSpan(1000 * 60 * 5);// 扫描间隔5分钟
+		option.setScanSpan(1000 * 20);// 扫描间隔5分钟
 		option.setIsNeedAddress(true);// 返回的定位结果包含地址信息
 		option.setNeedDeviceDirect(true);// 返回的定位结果包含手机机头的方向
 		mLocationClient.setLocOption(option);
@@ -721,9 +727,10 @@ public class TaskManagerService extends Service {
 			AsyncHttpClient client = new AsyncHttpClient();
 			RequestParams params = new RequestParams();
 			params.put("UserName", mUser.getUserName());
-			params.put("ChannelID", mUser.getChannelID());
+			params.put("ChannelID",""+ mUser.getChannelID());
 			params.put("UserID", mUser.getUserID());
-			params.put("LastRequestTime", mUser.getLastRequestTime());
+			params.put("LastRequestTime",""+ mUser.getLastRequestTime());
+			Log.d(TAG, "PUSH MSG:"+mUser.getChannelID()+" "+mUser.getUserID());
 			client.post(PUSH_PUSH_MSG_URL, params,
 					new AsyncHttpResponseHandler() {
 						@Override
@@ -752,8 +759,9 @@ public class TaskManagerService extends Service {
 		AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
 		params.put("UserName", mUser.getUserName());
-		params.put("Longitude", mUser.getLongitude());
-		params.put("Latitude", mUser.getLatitude());
+		params.put("Longitude", ""+mUser.getLongitude());
+		params.put("Latitude", ""+mUser.getLatitude());
+		Log.d(TAG,"pushLocationMsg");
 		client.post(PUSH_LOCATION_URL, params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onFailure(int arg0, Header[] arg1, byte[] arg2,
@@ -813,6 +821,7 @@ public class TaskManagerService extends Service {
 		RequestParams params = new RequestParams();
 		params.put("UserName", mUser.getUserName());
 		params.put("Tasks", msg);
+		Log.d(TAG, "MSG："+msg);
 		client.post(PUSH_MSG_URL, params, new AsyncHttpResponseHandler() {
 			@Override
 			public void onFailure(int arg0, Header[] arg1, byte[] arg2,
@@ -836,9 +845,17 @@ public class TaskManagerService extends Service {
 				mUser);
 		if (getFromServer.size() != 0) {
 			// 加进数组中，更新界面，更新数据库
-			mTotalTasks.addAll(getFromServer);
-
+			for (int i = 0; i < getFromServer.size(); i++) {
+				mIBinder.addNewTask(getFromServer.get(i));
+			}
 		}
+		// 反馈数据回去
+		if (mIBinder!=null) {
+			if (mIBinder.mCallBack!=null) {
+				mIBinder.mCallBack.initTasksData(mTotalTasks);
+			}
+		}
+
 	}
 
 	private void startAlarm(Task task) {

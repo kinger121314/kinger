@@ -708,7 +708,7 @@ public class NewTaskActivity extends Activity implements OnClickListener {
 				}
 				mTask.setMentionAction(mentionActions);
 
-				mBinder.updateTask(mTask, true);
+				mBinder.updateTask(mTask, true,true);
 			}
 			NewTaskActivity.this.finish();
 			break;

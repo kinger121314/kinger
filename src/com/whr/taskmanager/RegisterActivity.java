@@ -60,7 +60,6 @@ public class RegisterActivity extends Activity implements OnClickListener {
 						MainActivity.class);
 				startActivity(intent);
 				RegisterActivity.this.finish();
-
 				break;
 
 			case CANCEL_DIALOG:
@@ -125,6 +124,7 @@ public class RegisterActivity extends Activity implements OnClickListener {
 
 			@Override
 			public void registerSuccess() {
+				mHandler.sendEmptyMessage(LOGIN_SUCCESS);
 			}
 
 			@Override

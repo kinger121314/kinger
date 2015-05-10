@@ -126,12 +126,11 @@ public class JsonParser {
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
-						continue;
 					}
 
 					ImportLevel importLevel = ImportLevel
-							.valueOf("ImportLevel");
-					Status status = Status.valueOf("Status");
+							.valueOf(tmp.getString("ImportLevel"));
+					Status status = Status.valueOf(tmp.getString("Status"));
 
 					ArrayList<MentionAction> mentionActions = new ArrayList<MentionAction>();
 					String mentionActionString = tmp.getString("MentionAction");
@@ -146,7 +145,6 @@ public class JsonParser {
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
-						continue;
 					}
 					Task task = new Task(createTime, modifyTime, modifyAction,
 							title, content, expireTime, destX, destY,
